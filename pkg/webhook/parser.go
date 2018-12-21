@@ -23,13 +23,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fanzhangio/go-annotation/pkg/internal/general"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	webhooktypes "sigs.k8s.io/controller-runtime/pkg/webhook/types"
+	general "sigs.k8s.io/controller-tools/pkg/internal/general"
 )
 
 const webhookAnnotationPrefix = "kubebuilder:webhook"

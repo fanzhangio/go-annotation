@@ -10,6 +10,15 @@ import (
 	"strings"
 )
 
+var annotation Annotation
+
+func init() {
+	annotation = Build()
+
+}
+
+// ParseAnnotation parses the Go files under given directory and parses the annotation by
+// invoking the Parse function on each comment group (multi-lines comments).
 func ParseAnnotation(dir string, ann Annotation) error {
 	fset := token.NewFileSet()
 
@@ -47,4 +56,28 @@ func isGoFile(f os.FileInfo) bool {
 		!strings.HasPrefix(name, ".") &&
 		!strings.HasSuffix(name, "_test.go") &&
 		strings.HasSuffix(name, ".go")
+}
+
+// ParseKV parses key-value string formatted as "foo=bar" and returns key and value.
+func ParseKV(s string) (key, value string, err error) {
+	kv := strings.Split(s, "=")
+	if len(kv) != 2 {
+		err = fmt.Errorf("invalid key value pair")
+		return key, value, err
+	}
+	key, value = kv[0], kv[1]
+	if strings.HasPrefix(value, "\"") && strings.HasSuffix(value, "\"") {
+		value = value[1 : len(value)-1]
+	}
+	return key, value, err
+}
+
+// GetAnnotation extracts the annotation from comment text.
+// It will return "foo" for comment "+kubebuilder:webhook:foo" .
+func GetAnnotation(c, name string) string {
+	prefix := fmt.Sprintf("+%s:", name)
+	if strings.HasPrefix(c, prefix) {
+		return strings.TrimPrefix(c, prefix)
+	}
+	return ""
 }

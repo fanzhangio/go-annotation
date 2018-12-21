@@ -22,11 +22,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fanzhangio/go-annotation/pkg/internal/general"
+	"github.com/fanzhangio/go-annotation/pkg/annotation"
+	
 	"github.com/ghodss/yaml"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+func (o *parserOptions) AddToAnnotation(a *annotation.Annotation) {
+	// TODO
+}
 
 // ManifestOptions represent options for generating the RBAC manifests.
 type ManifestOptions struct {

@@ -28,10 +28,15 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	generateinteral "github.com/fanzhangio/go-annotation/pkg/internal/general"
+	"github.com/fanzhangio/go-annotation/pkg/annotation"
 	"github.com/fanzhangio/go-annotation/pkg/webhook/internal"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	generateinteral "sigs.k8s.io/controller-tools/pkg/internal/general"
 )
+
+func (o *ManifestOptions) AddToAnnotation(a *annotation.Annotation) {
+	// TODO
+}
 
 // ManifestOptions represent options for generating the webhook manifests.
 type ManifestOptions struct {
