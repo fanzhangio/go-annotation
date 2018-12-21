@@ -23,15 +23,11 @@ import (
 	"path/filepath"
 
 	"github.com/fanzhangio/go-annotation/pkg/annotation"
-	
+
 	"github.com/ghodss/yaml"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-func (o *parserOptions) AddToAnnotation(a *annotation.Annotation) {
-	// TODO
-}
 
 // ManifestOptions represent options for generating the RBAC manifests.
 type ManifestOptions struct {
@@ -84,7 +80,7 @@ func Generate(o *ManifestOptions) error {
 	}
 
 	// TODO (fanz)...................................................
-	err := general.ParseDir(o.InputDir, ops.parseAnnotation)
+	err := annotation.ParseAnnotation(o.InputDir, annotation.GetAnnotation())
 
 	if err != nil {
 		return fmt.Errorf("failed to parse the input dir %v", err)

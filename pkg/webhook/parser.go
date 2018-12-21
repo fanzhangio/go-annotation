@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	webhooktypes "sigs.k8s.io/controller-runtime/pkg/webhook/types"
-	general "sigs.k8s.io/controller-tools/pkg/internal/general"
+	
 )
 
 const webhookAnnotationPrefix = "kubebuilder:webhook"
@@ -39,17 +39,22 @@ var (
 	serverTags  = sets.NewString([]string{"port", "cert-dir", "service", "selector", "secret", "host", "mutating-webhook-config-name", "validating-webhook-config-name"}...)
 )
 
+
+func (o *ManifestOptions) AddToAnnotation(a annotation.Annotation) {
+	a.Module(&annotation.Module{
+		Name : "webhook",
+		Manifest: o,
+		Tags: webhookTags.Union(serverTags)
+		Func: o.ParseWebhook,
+	})
+}
+
 // parseAnnotation parses webhook annotations
-func (o *ManifestOptions) parseAnnotation(commentText string) error {
+func (o *ManifestOptions) ParseWebhook(commentText string) error {
 	webhookKVMap, serverKVMap := map[string]string{}, map[string]string{}
-	for _, comment := range strings.Split(commentText, "\n") {
-		comment := strings.TrimSpace(comment)
-		anno := general.GetAnnotation(comment, webhookAnnotationPrefix)
-		if len(anno) == 0 {
-			continue
-		}
+
 		for _, elem := range strings.Split(anno, ",") {
-			key, value, err := general.ParseKV(elem)
+			key, value, err := annotation.ParseKV(elem)
 			if err != nil {
 				log.Fatalf("// +kubebuilder:webhook: tags must be key value pairs. Example "+
 					"keys [groups=<group1;group2>,resources=<resource1;resource2>,verbs=<verb1;verb2>] "+
@@ -62,7 +67,7 @@ func (o *ManifestOptions) parseAnnotation(commentText string) error {
 				serverKVMap[key] = value
 			}
 		}
-	}
+	
 
 	if err := o.parseWebhookAnnotation(webhookKVMap); err != nil {
 		return err

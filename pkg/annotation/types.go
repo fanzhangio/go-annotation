@@ -17,16 +17,16 @@ type defaultAnnotation struct {
 	// Header is string set, containing all annotation prefixes: e.g.  +kuberbuilder, +rbac
 	Headers   sets.String
 	Modules   sets.String
-	ModuleMap map[string]Module
+	ModuleMap map[string]*Module
 	Meta      metaSchema
 }
 
 type Annotation interface {
 	Header(string)
-	Module(Module)
+	Module(*Module)
 	HasModule(string) bool
 	//HasAnnotation(string) bool // (TODO: for some true/false values)
-	GetModule(string) Module
+	GetModule(string) *Module
 	Parse(string) error
 	// (TODO:) Need a plugable parsing func
 }
@@ -36,7 +36,7 @@ func (a *defaultAnnotation) Header(header string) {
 }
 
 // module name will be added to Headers, e.g. "+rbac", "+resource"
-func (a *defaultAnnotation) Module(m Module) {
+func (a *defaultAnnotation) Module(m *Module) {
 	//a.Headers.Insert(prefixName(m.Name))
 	a.Modules.Insert(prefixName(m.Name))
 	a.ModuleMap[m.Name] = m
@@ -46,13 +46,13 @@ func (a *defaultAnnotation) HasModule(name string) bool {
 	return a.Modules.Has(name)
 }
 
-func (a *defaultAnnotation) GetModule(name string) Module {
+func (a *defaultAnnotation) GetModule(name string) *Module {
 	for _, m := range a.ModuleMap {
 		if m.Name == name {
 			return m
 		}
 	}
-	return Module{}
+	return nil
 }
 
 func (a *defaultAnnotation) Parse(comments string) (err error) {
@@ -76,14 +76,13 @@ func (a *defaultAnnotation) Parse(comments string) (err error) {
 	return nil
 }
 
-// Module is
 type Module struct {
 	Name     string
 	Manifest interface{}
 	Tags     sets.String
 	// function maps by key, how to use Token
 	// e.g.   verbs=get;list;delete
-	FuncMap map[string]func(string) error
+	Func func(string) error
 }
 
 // Complete process annotaion string into Tokens
@@ -103,7 +102,7 @@ func (a *defaultAnnotation) Complete(tokens []string) (err error) {
 		// Find Token following Module
 		// Pattern 1:   [header]:[module]:[element-values]
 		if module != "" && v != "" && k == len(tokens)-1 {
-			err = a.GetModule(module).FuncMap[module](v)
+			err = a.GetModule(module).Func(v)
 			if err != nil {
 				return
 			}
@@ -118,10 +117,4 @@ func (m *Module) HasTag(t string) bool {
 
 func Build() Annotation {
 	return &defaultAnnotation{}
-}
-
-// Utils (TODO:) move to separate file
-/**********************************************************/
-func prefixName(name string) string {
-	return "+" + name
 }
