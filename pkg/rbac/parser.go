@@ -36,13 +36,14 @@ type parserOptions struct {
 	rules []rbacv1.PolicyRule
 }
 
-func (o *parserOptions) AddToAnnotation(a annotation.Annotation) {
+func (o *parserOptions) AddToAnnotation(a annotation.Annotation) annotation.Annotation {
 	a.Module(&annotation.Module{
 		Name:     rbac,
 		Manifest: o,
 		Tags:     tags,
 		Func:     o.ParseRBACTag,
 	})
+	return a
 }
 
 // parseRBACTag parses the given RBAC annotation in to an RBAC PolicyRule.

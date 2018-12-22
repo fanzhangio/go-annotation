@@ -79,8 +79,7 @@ func Generate(o *ManifestOptions) error {
 		rules: []rbacv1.PolicyRule{},
 	}
 
-	// TODO (fanz)...................................................
-	err := annotation.ParseAnnotation(o.InputDir, annotation.GetAnnotation())
+	err := annotation.ParseAnnotation(o.InputDir, ops.AddToAnnotation(annotation.GetAnnotation()))
 
 	if err != nil {
 		return fmt.Errorf("failed to parse the input dir %v", err)

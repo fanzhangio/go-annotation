@@ -116,5 +116,10 @@ func (m *Module) HasTag(t string) bool {
 }
 
 func Build() Annotation {
-	return &defaultAnnotation{}
+	var moduleMap map[string]*Module
+	return &defaultAnnotation{
+		Headers:   sets.NewString(),
+		Modules:   sets.NewString(),
+		ModuleMap: moduleMap,
+	}
 }

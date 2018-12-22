@@ -32,48 +32,48 @@ import (
 	
 )
 
-const webhookAnnotationPrefix = "kubebuilder:webhook"
-
 var (
+	webhook = ""
 	webhookTags = sets.NewString([]string{"groups", "versions", "resources", "verbs", "type", "name", "path", "failure-policy"}...)
 	serverTags  = sets.NewString([]string{"port", "cert-dir", "service", "selector", "secret", "host", "mutating-webhook-config-name", "validating-webhook-config-name"}...)
 )
 
 
-func (o *ManifestOptions) AddToAnnotation(a annotation.Annotation) {
+func (o *ManifestOptions) AddToAnnotation(a annotation.Annotation) annotation.Annotation {
 	a.Module(&annotation.Module{
-		Name : "webhook",
+		Name:     "webhook",
 		Manifest: o,
-		Tags: webhookTags.Union(serverTags)
-		Func: o.ParseWebhook,
+		Tags:     webhookTags.Union(serverTags),
+		Func:     o.ParseWebhook,
 	})
+	return a
 }
 
 // parseAnnotation parses webhook annotations
 func (o *ManifestOptions) ParseWebhook(commentText string) error {
 	webhookKVMap, serverKVMap := map[string]string{}, map[string]string{}
 
-		for _, elem := range strings.Split(anno, ",") {
-			key, value, err := annotation.ParseKV(elem)
-			if err != nil {
-				log.Fatalf("// +kubebuilder:webhook: tags must be key value pairs. Example "+
-					"keys [groups=<group1;group2>,resources=<resource1;resource2>,verbs=<verb1;verb2>] "+
-					"Got string: [%s]", anno)
-			}
-			switch {
-			case webhookTags.Has(key):
-				webhookKVMap[key] = value
-			case serverTags.Has(key):
-				serverKVMap[key] = value
-			}
+	for _, elem := range strings.Split(commentText, ",") {
+		key, value, err := annotation.ParseKV(elem)
+		if err != nil {
+			log.Fatalf("// +kubebuilder:webhook: tags must be key value pairs. Example "+
+				"keys [groups=<group1;group2>,resources=<resource1;resource2>,verbs=<verb1;verb2>] "+
+				"Got string: [%s]", commentText)
 		}
-	
+		switch {
+		case webhookTags.Has(key):
+			webhookKVMap[key] = value
+		case serverTags.Has(key):
+			serverKVMap[key] = value
+		}
+	}
 
 	if err := o.parseWebhookAnnotation(webhookKVMap); err != nil {
 		return err
 	}
 	return o.parseServerAnnotation(serverKVMap)
 }
+
 
 // parseWebhookAnnotation parses webhook annotations in the same comment group
 // nolint: gocyclo

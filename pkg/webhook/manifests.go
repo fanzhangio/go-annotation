@@ -31,9 +31,7 @@ import (
 	"github.com/fanzhangio/go-annotation/pkg/annotation"
 	"github.com/fanzhangio/go-annotation/pkg/webhook/internal"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
-	
 )
-
 
 // ManifestOptions represent options for generating the webhook manifests.
 type ManifestOptions struct {
@@ -82,7 +80,7 @@ func Generate(o *ManifestOptions) error {
 	o.svrOps = &webhook.ServerOptions{
 		Client: internal.NewManifestClient(path.Join(o.OutputDir, "webhook.yaml")),
 	}
-	err = generateinteral.ParseDir(o.InputDir, o.parseAnnotation)
+	err = annotation.ParseAnnotation(o.InputDir, o.AddToAnnotation(annotation.GetAnnotation()))
 	if err != nil {
 		return fmt.Errorf("failed to parse the input dir: %v", err)
 	}
