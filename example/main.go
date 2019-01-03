@@ -6,22 +6,22 @@ import (
 	"path/filepath"
 
 	rbac "github.com/fanzhangio/go-annotation/pkg/rbac"
-	webhook "github.com/fanzhangio/go-annotation/pkg/webhook"
+	// webhook "github.com/fanzhangio/go-annotation/pkg/webhook"
 )
 
 func main() {
 	fmt.Println("....Starging go annotation example")
 	RBACCmd()
-	WebhookCmd()
+	// WebhookCmd()
 }
 
-func WebhookCmd() error {
-	o := &webhook.ManifestOptions{}
-	if err := webhook.Generate(o); err != nil {
-		log.Fatal(err)
-	}
-	return nil
-}
+// func WebhookCmd() error {
+// 	o := &webhook.ManifestOptions{}
+// 	if err := webhook.Generate(o); err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	return nil
+// }
 
 func RBACCmd() error {
 	o := &rbac.ManifestOptions{}

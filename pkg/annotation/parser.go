@@ -38,7 +38,7 @@ func ParseAnnotation(dir string, ann Annotation) error {
 			}
 			cmap := ast.NewCommentMap(fset, f, f.Comments)
 			for _, commentGroup := range cmap.Comments() {
-				err = ann.Parse(commentGroup.Text())
+				err = ann.Parse(commentGroup.Text(), nil)
 				if err != nil {
 					fmt.Print("error when parsing annotation")
 					return err

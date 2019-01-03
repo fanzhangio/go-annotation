@@ -50,7 +50,7 @@ func (o *ManifestOptions) AddToAnnotation(a annotation.Annotation) annotation.An
 }
 
 // parseAnnotation parses webhook annotations
-func (o *ManifestOptions) ParseWebhook(commentText string) error {
+func (o *ManifestOptions) ParseWebhook(commentText string, i interface{}) error {
 	webhookKVMap, serverKVMap := map[string]string{}, map[string]string{}
 
 	for _, elem := range strings.Split(commentText, ",") {

@@ -27,7 +27,7 @@ type Annotation interface {
 	HasModule(string) bool
 	//HasAnnotation(string) bool // (TODO: for some true/false values)
 	GetModule(string) *Module
-	Parse(string) error
+	Parse(string, interface{}) error
 	// (TODO:) Need a plugable parsing func
 }
 
@@ -55,7 +55,7 @@ func (a *defaultAnnotation) GetModule(name string) *Module {
 	return nil
 }
 
-func (a *defaultAnnotation) Parse(comments string) (err error) {
+func (a *defaultAnnotation) Parse(comments string, i interface{}) (err error) {
 	for _, comment := range strings.Split(comments, "\n") {
 		comment = strings.TrimSpace(comment)
 		// Validate annotations then continue
@@ -68,7 +68,7 @@ func (a *defaultAnnotation) Parse(comments string) (err error) {
 
 			// (TODO:) valid annotation pattern
 			list := strings.Split(strings.TrimPrefix(comments, "+"), ":")
-			if err = a.Complete(list); err != nil {
+			if err = a.Complete(list, i); err != nil {
 				return
 			}
 		}
@@ -82,11 +82,11 @@ type Module struct {
 	Tags     sets.String
 	// function maps by key, how to use Token
 	// e.g.   verbs=get;list;delete
-	Func func(string) error
+	Func func(string, interface{}) error
 }
 
 // Complete process annotaion string into Tokens
-func (a *defaultAnnotation) Complete(tokens []string) (err error) {
+func (a *defaultAnnotation) Complete(tokens []string, i interface{}) (err error) {
 	var module string
 	for k, v := range tokens {
 		if a.Headers.Has(v) {
@@ -97,12 +97,16 @@ func (a *defaultAnnotation) Complete(tokens []string) (err error) {
 		if a.Modules.Has(v) {
 			// Find module, parsing module and calling Func from Map
 			module = v
-			continue
+			if k != len(tokens)-1 {
+				// Module is not the last token
+				continue
+			}
 		}
 		// Find Token following Module
 		// Pattern 1:   [header]:[module]:[element-values]
-		if module != "" && v != "" && k == len(tokens)-1 {
-			err = a.GetModule(module).Func(v)
+		if module != "" && v != "" {
+			// rest of tokens
+			err = a.GetModule(module).Func(v, i)
 			if err != nil {
 				return
 			}
@@ -116,10 +120,9 @@ func (m *Module) HasTag(t string) bool {
 }
 
 func Build() Annotation {
-	var moduleMap map[string]*Module
 	return &defaultAnnotation{
 		Headers:   sets.NewString(),
 		Modules:   sets.NewString(),
-		ModuleMap: moduleMap,
+		ModuleMap: map[string]*Module{},
 	}
 }

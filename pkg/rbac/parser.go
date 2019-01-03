@@ -48,7 +48,7 @@ func (o *parserOptions) AddToAnnotation(a annotation.Annotation) annotation.Anno
 
 // parseRBACTag parses the given RBAC annotation in to an RBAC PolicyRule.
 // This is copied from Kubebuilder code.
-func (o *parserOptions) ParseRBACTag(tag string) (err error) {
+func (o *parserOptions) ParseRBACTag(tag string, i interface{}) (err error) {
 	result := rbacv1.PolicyRule{}
 	for _, elem := range strings.Split(tag, ",") {
 		key, value, err := annotation.ParseKV(elem)
