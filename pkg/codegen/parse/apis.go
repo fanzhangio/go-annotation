@@ -22,9 +22,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/fanzhangio/go-annotation/pkg/codegen"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/gengo/types"
-	"sigs.k8s.io/controller-tools/pkg/internal/codegen"
 )
 
 type genUnversionedType struct {
@@ -72,9 +72,6 @@ func (b *APIs) parseAPIs() {
 					NonNamespaced:  resource.NonNamespaced,
 					ShortName:      resource.ShortName,
 				}
-
-				// fanz: 再parse API的过程中，parse doc
-				// TODO:
 				parseDoc(resource, apiResource)
 				apiVersion.Resources[kind] = apiResource
 				// Set the package for the api version

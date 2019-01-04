@@ -20,10 +20,11 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	
+
+	"github.com/fanzhangio/go-annotation/pkg/annotation"
+	"github.com/fanzhangio/go-annotation/pkg/codegen"
+	"github.com/markbates/inflect"
 	"k8s.io/gengo/types"
-	"sigs.k8s.io/controller-tools/pkg/internal/codegen"
-	"sigs.k8s.io/controller-tools/pkg/internal/general"
 )
 
 // parseIndex indexes all types with the comment "// +resource=RESOURCE" by GroupVersionKind and
@@ -118,7 +119,7 @@ type resourceTags struct {
 func resourceAnnotationValue(tag string) (resourceTags, error) {
 	res := resourceTags{}
 	for _, elem := range strings.Split(tag, ",") {
-		key, value, err := general.ParseKV(elem)
+		key, value, err := annotation.ParseKV(elem)
 		if err != nil {
 			return resourceTags{}, fmt.Errorf("// +kubebuilder:resource: tags must be key value pairs.  Expected "+
 				"keys [path=<resourcepath>] "+
@@ -141,7 +142,7 @@ func parseResourceAnnotation(t *types.Type) (resourceTags, error) {
 	finalResult := resourceTags{}
 	var resourceAnnotationFound bool
 	for _, comment := range t.CommentLines {
-		anno := general.GetAnnotation(comment, "kubebuilder:resource")
+		anno := annotation.OldGetAnnotation(comment, "kubebuilder:resource")
 		if len(anno) == 0 {
 			continue
 		}

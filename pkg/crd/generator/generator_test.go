@@ -23,8 +23,8 @@ import (
 	"reflect"
 	"testing"
 
+	crdgenerator "github.com/fanzhangio/go-annotation/pkg/crd/generator"
 	"github.com/spf13/afero"
-	crdgenerator "sigs.k8s.io/controller-tools/pkg/crd/generator"
 )
 
 func TestGenerator(t *testing.T) {

@@ -33,26 +33,33 @@ import (
 )
 
 var (
-	webhook = ""
 	webhookTags = sets.NewString([]string{"groups", "versions", "resources", "verbs", "type", "name", "path", "failure-policy"}...)
 	serverTags  = sets.NewString([]string{"port", "cert-dir", "service", "selector", "secret", "host", "mutating-webhook-config-name", "validating-webhook-config-name"}...)
 )
 
-
+// AddToAnnotation registers webhook module into kubebuilder Annotation
 func (o *ManifestOptions) AddToAnnotation(a annotation.Annotation) annotation.Annotation {
 	a.Module(&annotation.Module{
-		Name:     "webhook",
-		Manifest: o,
-		Tags:     webhookTags.Union(serverTags),
-		Func:     o.ParseWebhook,
+		Name: "webhook",
+		Do:   nil,
+		SubModules: map[string]*annotation.Module{
+			"admission": &annotation.Module{
+				Name:       "admission",
+				SubModules: map[string]*annotation.Module{},
+				Do:         o.admissionFunc,
+			},
+			"serveroption": &annotation.Module{
+				Name:       "serveroption",
+				SubModules: map[string]*annotation.Module{},
+				Do:         o.serverOptionFunc,
+			},
+		},
 	})
 	return a
 }
 
-// parseAnnotation parses webhook annotations
-func (o *ManifestOptions) ParseWebhook(commentText string, i interface{}) error {
-	webhookKVMap, serverKVMap := map[string]string{}, map[string]string{}
-
+// admissionFunc is hanlder for webhook admission submodule
+func (o *ManifestOptions) admissionFunc(commentText string) error {
 	for _, elem := range strings.Split(commentText, ",") {
 		key, value, err := annotation.ParseKV(elem)
 		if err != nil {
@@ -60,20 +67,27 @@ func (o *ManifestOptions) ParseWebhook(commentText string, i interface{}) error 
 				"keys [groups=<group1;group2>,resources=<resource1;resource2>,verbs=<verb1;verb2>] "+
 				"Got string: [%s]", commentText)
 		}
-		switch {
-		case webhookTags.Has(key):
-			webhookKVMap[key] = value
-		case serverTags.Has(key):
-			serverKVMap[key] = value
-		}
+		o.webhookKVMap[key] = value
 	}
 
-	if err := o.parseWebhookAnnotation(webhookKVMap); err != nil {
-		return err
-	}
-	return o.parseServerAnnotation(serverKVMap)
+	return o.parseWebhookAnnotation(o.webhookKVMap)
 }
 
+// serverOptionFunc is handler for webhook server option
+func (o *ManifestOptions) serverOptionFunc(commentText string) error {
+	for _, elem := range strings.Split(commentText, ",") {
+		key, value, err := annotation.ParseKV(elem)
+		if err != nil {
+			log.Fatalf("// +kubebuilder:webhook: tags must be key value pairs. Example "+
+				"keys [groups=<group1;group2>,resources=<resource1;resource2>,verbs=<verb1;verb2>] "+
+				"Got string: [%s]", commentText)
+		}
+		o.serverKVMap[key] = value
+	}
+
+	return o.parseServerAnnotation(o.serverKVMap)
+
+}
 
 // parseWebhookAnnotation parses webhook annotations in the same comment group
 // nolint: gocyclo
@@ -178,8 +192,8 @@ func (o *ManifestOptions) parseServerAnnotation(kvMap map[string]string) error {
 		case "cert-dir":
 			o.svrOps.CertDir = value
 		case "service":
-			// format: <service=namespace:name>
-			split := strings.Split(value, ":")
+			// format: <service=namespace|name>, "|" is delimiter for label
+			split := strings.Split(value, "|")
 			if len(split) != 2 || len(split[0]) == 0 || len(split[1]) == 0 {
 				return fmt.Errorf("invalid service format: expect <namespace:name>, but got %q", value)
 			}
@@ -192,7 +206,7 @@ func (o *ManifestOptions) parseServerAnnotation(kvMap map[string]string) error {
 			o.svrOps.Service.Namespace = split[0]
 			o.svrOps.Service.Name = split[1]
 		case "selector":
-			// selector of the service. Format: <selector=label1:value1;label2:value2>
+			// selector of the service. Format: <selector=label1|value1;label2|value2>, "|" is delimiter for lable
 			split := strings.Split(value, ";")
 			if len(split) == 0 {
 				return fmt.Errorf("invalid selector format: expect <label1:value1;label2:value2>, but got %q", value)
@@ -204,7 +218,7 @@ func (o *ManifestOptions) parseServerAnnotation(kvMap map[string]string) error {
 				o.svrOps.Service = &webhook.Service{}
 			}
 			for _, v := range split {
-				l := strings.Split(v, ":")
+				l := strings.Split(v, "|")
 				if len(l) != 2 || len(l[0]) == 0 || len(l[1]) == 0 {
 					return fmt.Errorf("invalid selector format: expect <label1:value1;label2:value2>, but got %q", value)
 				}
@@ -241,8 +255,8 @@ func (o *ManifestOptions) parseServerAnnotation(kvMap map[string]string) error {
 			o.svrOps.ValidatingWebhookConfigName = value
 
 		case "secret":
-			// format: <secret=namespace:name>
-			split := strings.Split(value, ":")
+			// format: <secret=namespace|name>, "|" is delimiter for label
+			split := strings.Split(value, "|")
 			if len(split) != 2 || len(split[0]) == 0 || len(split[1]) == 0 {
 				return fmt.Errorf("invalid secret format: expect <namespace:name>, but got %q", value)
 			}

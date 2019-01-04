@@ -38,17 +38,15 @@ type parserOptions struct {
 
 func (o *parserOptions) AddToAnnotation(a annotation.Annotation) annotation.Annotation {
 	a.Module(&annotation.Module{
-		Name:     rbac,
-		Manifest: o,
-		Tags:     tags,
-		Func:     o.ParseRBACTag,
+		Name: "rbac",
+		Do:   o.ParseRBAC,
 	})
 	return a
 }
 
 // parseRBACTag parses the given RBAC annotation in to an RBAC PolicyRule.
 // This is copied from Kubebuilder code.
-func (o *parserOptions) ParseRBACTag(tag string, i interface{}) (err error) {
+func (o *parserOptions) ParseRBAC(tag string) (err error) {
 	result := rbacv1.PolicyRule{}
 	for _, elem := range strings.Split(tag, ",") {
 		key, value, err := annotation.ParseKV(elem)

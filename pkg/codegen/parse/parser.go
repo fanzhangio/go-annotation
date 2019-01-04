@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fanzhangio/go-annotation/pkg/annotation"
+	"github.com/fanzhangio/go-annotation/pkg/codegen"
 	"github.com/pkg/errors"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,7 +32,6 @@ import (
 	"k8s.io/gengo/args"
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/types"
-	"sigs.k8s.io/controller-tools/pkg/internal/codegen"
 )
 
 // APIs is the information of a collection of API
@@ -60,44 +59,20 @@ type APIs struct {
 // NewAPIs returns a new APIs instance with given context.
 func NewAPIs(context *generator.Context, arguments *args.GeneratorArgs, domain, apisPkg string) *APIs {
 	b := &APIs{
-		context:         context,
-		arguments:       arguments,
-		Domain:          domain,
-		APIsPkg:         apisPkg,
-		VersionedPkgs:   sets.NewString(),
-		UnversionedPkgs: sets.NewString(),
+		context:   context,
+		arguments: arguments,
+		Domain:    domain,
+		APIsPkg:   apisPkg,
 	}
-	// b.parsePackages()
+	b.parsePackages()
 	b.parseGroupNames()
-
 	b.parseIndex()
 	b.parseAPIs()
 	b.parseCRDs()
-
 	if len(b.Domain) == 0 {
 		b.parseDomain()
 	}
 	return b
-}
-
-// TODO (parse API annotation)
-func (b *APIs) Parse(ann annotation.Annotation, fn ...func(annotation.Annotation) annotation.Annotation) {
-	for _, f := range fn {
-		ann = f(ann)
-	}
-	// 集中初始化,负责处理 b *APIs
-	b.ByGroupVersionKind = map[string]map[string]map[string]*codegen.APIResource{}
-	b.ByGroupKindVersion = map[string]map[string]map[string]*codegen.APIResource{}
-	b.SubByGroupVersionKind = map[string]map[string]map[string]*types.Type{}
-
-	b.VersionedPkgs = sets.NewString()
-	b.UnversionedPkgs = sets.NewString()
-	// 遍历一次
-	for _, t := range b.context.Order {
-		for _, c := range t.CommentLines {
-			ann.Parse(c, t)
-		}
-	}
 }
 
 // parseGroupNames initializes b.GroupNames with the set of all groups

@@ -42,6 +42,9 @@ type ManifestOptions struct {
 	webhooks []webhook.Webhook
 	svrOps   *webhook.ServerOptions
 	svr      *webhook.Server
+
+	webhookKVMap map[string]string
+	serverKVMap  map[string]string
 }
 
 // SetDefaults sets up the default options for RBAC Manifest generator.
@@ -49,6 +52,8 @@ func (o *ManifestOptions) SetDefaults() {
 	o.InputDir = filepath.Join(".", "pkg", "webhook")
 	o.OutputDir = filepath.Join(".", "config", "webhook")
 	o.PatchOutputDir = filepath.Join(".", "config", "default")
+	o.webhookKVMap = map[string]string{}
+	o.serverKVMap = map[string]string{}
 }
 
 // Validate validates the input options.
@@ -80,7 +85,8 @@ func Generate(o *ManifestOptions) error {
 	o.svrOps = &webhook.ServerOptions{
 		Client: internal.NewManifestClient(path.Join(o.OutputDir, "webhook.yaml")),
 	}
-	err = annotation.ParseAnnotation(o.InputDir, o.AddToAnnotation(annotation.GetAnnotation()))
+	// parse webhook annotation by generic annotation approach
+	err = annotation.ParseAnnotationByDir(o.InputDir, o.AddToAnnotation(annotation.GetAnnotation()))
 	if err != nil {
 		return fmt.Errorf("failed to parse the input dir: %v", err)
 	}

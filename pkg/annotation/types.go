@@ -1,44 +1,34 @@
 package annotation
 
 import (
+	"fmt"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-// meata schema is [Module]:[Tokens]
-//  e.g.
-//  Pattern 1: +kubebuilder:webhook:groups=apps,resources=deployments,verbs=CREATE;UPDATE
-//  Pattern 2: +kubebuilder:subresource:scale:specpath=.spec.replica,statuspath=.status.replica,selectorpath=.spec.Label
-type metaSchema map[string]map[string][]string
-
 type defaultAnnotation struct {
-
-	// Header is string set, containing all annotation prefixes: e.g.  +kuberbuilder, +rbac
 	Headers   sets.String
 	Modules   sets.String
 	ModuleMap map[string]*Module
-	Meta      metaSchema
 }
 
+// Annotation defines a generic spec of annotations
+// The schema is [header]:[module]:[submodule]:[key-value elements], submodule could be optional and multiple
 type Annotation interface {
 	Header(string)
 	Module(*Module)
 	HasModule(string) bool
-	//HasAnnotation(string) bool // (TODO: for some true/false values)
 	GetModule(string) *Module
-	Parse(string, interface{}) error
-	// (TODO:) Need a plugable parsing func
+	Parse(string) error
 }
 
 func (a *defaultAnnotation) Header(header string) {
-	a.Headers.Insert(prefixName(header))
+	a.Headers.Insert(header)
 }
 
-// module name will be added to Headers, e.g. "+rbac", "+resource"
 func (a *defaultAnnotation) Module(m *Module) {
-	//a.Headers.Insert(prefixName(m.Name))
-	a.Modules.Insert(prefixName(m.Name))
+	a.Modules.Insert(m.Name)
 	a.ModuleMap[m.Name] = m
 }
 
@@ -55,20 +45,18 @@ func (a *defaultAnnotation) GetModule(name string) *Module {
 	return nil
 }
 
-func (a *defaultAnnotation) Parse(comments string, i interface{}) (err error) {
+// Parse takes single line comment and validates each token.
+func (a *defaultAnnotation) Parse(comments string) (err error) {
 	for _, comment := range strings.Split(comments, "\n") {
 		comment = strings.TrimSpace(comment)
-		// Validate annotations then continue
-		// 1. Has valid header
-		// 2. Populate meta data
 		for k, _ := range a.Headers.Union(a.Modules) {
-			if !strings.HasPrefix(comments, k) {
+			if !strings.HasPrefix(comment, prefixName(k)) {
 				continue
 			}
-
-			// (TODO:) valid annotation pattern
-			list := strings.Split(strings.TrimPrefix(comments, "+"), ":")
-			if err = a.Complete(list, i); err != nil {
+			// parsing sigle whole line of comment into tokens split by comma (1st level delimiter)
+			// This requires all key-values of same module/submodule should reside in the same comment line
+			tokens := strings.Split(strings.TrimPrefix(comment, "+"), ":")
+			if err = a.parseTokens(tokens); err != nil {
 				return
 			}
 		}
@@ -76,49 +64,49 @@ func (a *defaultAnnotation) Parse(comments string, i interface{}) (err error) {
 	return nil
 }
 
-type Module struct {
-	Name     string
-	Manifest interface{}
-	Tags     sets.String
-	// function maps by key, how to use Token
-	// e.g.   verbs=get;list;delete
-	Func func(string, interface{}) error
-}
-
 // Complete process annotaion string into Tokens
-func (a *defaultAnnotation) Complete(tokens []string, i interface{}) (err error) {
-	var module string
-	for k, v := range tokens {
-		if a.Headers.Has(v) {
-			// (TODO:) exceptional validation
-			// Ignore header, parsing module and its tokens
-			continue
-		}
-		if a.Modules.Has(v) {
-			// Find module, parsing module and calling Func from Map
-			module = v
-			if k != len(tokens)-1 {
-				// Module is not the last token
-				continue
-			}
-		}
-		// Find Token following Module
-		// Pattern 1:   [header]:[module]:[element-values]
-		if module != "" && v != "" {
-			// rest of tokens
-			err = a.GetModule(module).Func(v, i)
-			if err != nil {
-				return
-			}
-		} // (TODO): consider corner case - subresource:scale:<key=value>
+func (a *defaultAnnotation) parseTokens(tokens []string) (err error) {
+	if a.Headers.Has(tokens[0]) {
+		// competitable for annotations without header starting with "+[module]"
+		tokens = tokens[1:]
+	}
+	if a.Modules.Has(tokens[0]) {
+		return a.GetModule(tokens[0]).parseModule(tokens)
 	}
 	return
 }
 
-func (m *Module) HasTag(t string) bool {
-	return m.Tags.Has(t)
+// Module
+type Module struct {
+	Name       string
+	Manifest   interface{}
+	SubModules map[string]*Module
+	Do         func(string) error
 }
 
+// HasSubModule verify if given token string is a valid subresource
+func (m *Module) HasSubModule(name string) bool {
+	for _, v := range m.SubModules {
+		if v.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *Module) parseModule(tokens []string) error {
+	// [module]:[submodule]:[element-values]
+	if len(tokens) > 2 {
+		s := tokens[1]
+		if !m.HasSubModule(s) {
+			return fmt.Errorf("annotation (%s) format error, has incorrect submodule %s", tokens, s)
+		}
+		return m.SubModules[s].parseModule(tokens[1:])
+	}
+	return m.Do(tokens[1])
+}
+
+// Build returns initialized default annotation
 func Build() Annotation {
 	return &defaultAnnotation{
 		Headers:   sets.NewString(),

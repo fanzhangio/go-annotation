@@ -23,9 +23,9 @@ import (
 	"path"
 	"strings"
 
+	"github.com/fanzhangio/go-annotation/pkg/codegen"
+	"github.com/fanzhangio/go-annotation/pkg/codegen/parse"
 	"github.com/ghodss/yaml"
-	"github.com/go-annotation/pkg/codegen"
-	"github.com/go-annotation/pkg/codegen/parse"
 	"github.com/spf13/afero"
 	extensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/gengo/args"
