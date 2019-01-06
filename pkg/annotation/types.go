@@ -46,18 +46,18 @@ func (a *defaultAnnotation) GetModule(name string) *Module {
 }
 
 // Parse takes single line comment and validates each token.
-func (a *defaultAnnotation) Parse(comments string) (err error) {
+func (a *defaultAnnotation) Parse(comments string) error {
 	for _, comment := range strings.Split(comments, "\n") {
 		comment = strings.TrimSpace(comment)
-		for k, _ := range a.Headers.Union(a.Modules) {
+		for k := range a.Headers.Union(a.Modules) {
 			if !strings.HasPrefix(comment, prefixName(k)) {
 				continue
 			}
 			// parsing sigle whole line of comment into tokens split by comma (1st level delimiter)
 			// This requires all key-values of same module/submodule should reside in the same comment line
 			tokens := strings.Split(strings.TrimPrefix(comment, "+"), ":")
-			if err = a.parseTokens(tokens); err != nil {
-				return
+			if err := a.parseTokens(tokens); err != nil {
+				return err
 			}
 		}
 	}
@@ -65,7 +65,7 @@ func (a *defaultAnnotation) Parse(comments string) (err error) {
 }
 
 // Complete process annotaion string into Tokens
-func (a *defaultAnnotation) parseTokens(tokens []string) (err error) {
+func (a *defaultAnnotation) parseTokens(tokens []string) error {
 	if a.Headers.Has(tokens[0]) {
 		// competitable for annotations without header starting with "+[module]"
 		tokens = tokens[1:]
@@ -73,7 +73,7 @@ func (a *defaultAnnotation) parseTokens(tokens []string) (err error) {
 	if a.Modules.Has(tokens[0]) {
 		return a.GetModule(tokens[0]).parseModule(tokens)
 	}
-	return
+	return fmt.Errorf("annotation %+v format error", tokens)
 }
 
 // Module

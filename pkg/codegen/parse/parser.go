@@ -64,9 +64,11 @@ func NewAPIs(context *generator.Context, arguments *args.GeneratorArgs, domain, 
 		Domain:    domain,
 		APIsPkg:   apisPkg,
 	}
-	b.parsePackages()
-	b.parseGroupNames()
-	b.parseIndex()
+
+	b.parseAPI()
+	// b.parsePackages()
+	// b.parseGroupNames()
+	// b.parseIndex()
 	b.parseAPIs()
 	b.parseCRDs()
 	if len(b.Domain) == 0 {
