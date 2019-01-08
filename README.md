@@ -48,7 +48,7 @@ No submodule at this moment, support annotaions like : `// +rbac`, `// +kubebuil
 // +rbac:groups=apps,resources=deployments,verbs=get;list;watch;delete
 ```
 
-### Core code-gen parser and parse CRD (WIP)
+### Core code-gen parser and parse CRD
 
 Implemented Modules:
 - parseAPIAnnotation
@@ -62,6 +62,8 @@ Implemented Modules:
 - parsePrintColumn
   - support `// +printcolumn`, and `// +kubebuilder:printcolumn`
   - example: `// +kubebuilder:printcolumn:name="toy",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description="descr1",format="date",priority=3`
+- parseCRD
+  - Implement generating CRD in just one parse by `parseAPIResource`. Optimize CRD generation and parsing api resources.
 
 Modules WIP:
 - parseSubresource (TODO): scale and status
