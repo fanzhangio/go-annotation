@@ -4,7 +4,8 @@ It introduces an `Annotation-based Pattern`.
 
 The codes in this repo demos how `Annotation-based Pattern` can be used for [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) project. By this approach, an easy-to sacle, develop and maintain annotaion mechanism is provided to unify annotation schemas and usages in kubebuilder project. It is easily to extend features in kubebuilder.
 
-The annotation spec is like **[header]:[module]:[submodule]:[key-value elements]**,
+The annotation spec is like 
+## [header]:[module]:[submodule]:[key-value elements]
 
 [header] is like `// +kubebuilder`, `// +k8s`, `// +genclient`, etc. For forward-compatibility, [header] could be emitted, in this case, [module] must be the first token
 
