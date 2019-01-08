@@ -21,6 +21,7 @@ func GetAnnotation() Annotation {
 	once.Do(func() {
 		ann = Build()
 		ann.Header("kubebuilder")
+		ann.Header("genclient") // Header can be applied to any annotations
 	})
 	return ann
 }

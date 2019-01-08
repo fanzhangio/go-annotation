@@ -79,6 +79,7 @@ func (b *APIs) parseCRDs() {
 						resource.CRD.Spec.Scope = "Namespaced"
 					}
 
+					// TODO(fanz): refactor to parseCategories annotation
 					if hasCategories(resource.Type) {
 						categoriesTag := getCategoriesTag(resource.Type)
 						categories := strings.Split(categoriesTag, ",")
@@ -86,6 +87,7 @@ func (b *APIs) parseCRDs() {
 						resource.Categories = categories
 					}
 
+					// TODO(fanz): refactor to parseSubresource annotation
 					if hasStatusSubresource(resource.Type) {
 						if resource.CRD.Spec.Subresources == nil {
 							resource.CRD.Spec.Subresources = &v1beta1.CustomResourceSubresources{}
@@ -96,6 +98,7 @@ func (b *APIs) parseCRDs() {
 					resource.CRD.Status.Conditions = []v1beta1.CustomResourceDefinitionCondition{}
 					resource.CRD.Status.StoredVersions = []string{}
 
+					// TODO(fanz): refactor to parseSubresource annotation
 					if hasScaleSubresource(resource.Type) {
 						if resource.CRD.Spec.Subresources == nil {
 							resource.CRD.Spec.Subresources = &v1beta1.CustomResourceSubresources{}
@@ -113,6 +116,8 @@ func (b *APIs) parseCRDs() {
 							resource.CRD.Spec.Subresources.Scale.LabelSelectorPath = &labelSelctor
 						}
 					}
+
+					// TODO(fanz): refactor to parsePrintColumn annotation
 					if hasPrintColumn(resource.Type) {
 						result, err := parsePrintColumnParams(resource.Type)
 						if err != nil {

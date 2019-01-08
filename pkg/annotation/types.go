@@ -79,7 +79,7 @@ func (a *defaultAnnotation) parseTokens(tokens []string) error {
 // Module
 type Module struct {
 	Name       string
-	Manifest   interface{}
+	Meta       interface{}
 	SubModules map[string]*Module
 	Do         func(string) error
 }
