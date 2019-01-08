@@ -7,12 +7,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-type defaultAnnotation struct {
-	Headers   sets.String
-	Modules   sets.String
-	ModuleMap map[string]*Module
-}
-
 // Annotation defines a generic spec of annotations
 // The schema is [header]:[module]:[submodule]:[key-value elements], submodule could be optional and multiple
 type Annotation interface {
@@ -21,6 +15,12 @@ type Annotation interface {
 	HasModule(string) bool
 	GetModule(string) *Module
 	Parse(string) error
+}
+
+type defaultAnnotation struct {
+	Headers   sets.String
+	Modules   sets.String
+	ModuleMap map[string]*Module
 }
 
 func (a *defaultAnnotation) Header(header string) {
@@ -95,6 +95,9 @@ func (m *Module) HasSubModule(name string) bool {
 }
 
 func (m *Module) parseModule(tokens []string) error {
+	if len(tokens) == 1 {
+		return m.Do(tokens[0])
+	}
 	// [module]:[submodule]:[element-values]
 	if len(tokens) > 2 {
 		s := tokens[1]
