@@ -693,26 +693,12 @@
   revision = "f6f0bc9611363b43664d08fb097ab13243ef621d"
   version = "v0.1.9"
 
-[[projects]]
-  digest = "1:037619f36f0f7db5e7dad0e740457bb61aa40bbdc43a6016f7e46e29af1c9b6c"
-  name = "sigs.k8s.io/controller-tools"
-  packages = [
-    "pkg/crd/generator",
-    "pkg/crd/util",
-    "pkg/internal/codegen",
-    "pkg/internal/codegen/parse",
-    "pkg/internal/general",
-    "pkg/util",
-  ]
-  pruneopts = "UT"
-  revision = "950a0e88e4effb864253b3c7504b326cc83b9d11"
-  version = "v0.1.8"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
     "github.com/ghodss/yaml",
+    "github.com/markbates/inflect",
     "github.com/pkg/errors",
     "github.com/spf13/afero",
     "k8s.io/api/admissionregistration/v1beta1",
@@ -741,11 +727,6 @@
     "sigs.k8s.io/controller-runtime/pkg/webhook/admission",
     "sigs.k8s.io/controller-runtime/pkg/webhook/admission/types",
     "sigs.k8s.io/controller-runtime/pkg/webhook/types",
-    "sigs.k8s.io/controller-tools/pkg/crd/generator",
-    "sigs.k8s.io/controller-tools/pkg/crd/util",
-    "sigs.k8s.io/controller-tools/pkg/internal/codegen",
-    "sigs.k8s.io/controller-tools/pkg/internal/general",
-    "sigs.k8s.io/controller-tools/pkg/util",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -61,10 +61,6 @@
   name = "sigs.k8s.io/controller-runtime"
   version = "0.1.9"
 
-[[constraint]]
-  name = "sigs.k8s.io/controller-tools"
-  version = "0.1.8"
-
 [prune]
   go-tests = true
   unused-packages = true
