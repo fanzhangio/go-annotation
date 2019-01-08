@@ -53,14 +53,15 @@ No submodule at this moment, support annotaions like : `// +rbac`, `// +kubebuil
 Implemented Modules:
 - parseAPIAnnotation
 - parseAPIResource
-  support `// +kubebuilder:resource: ...`, `// +resource: ...`. Example: `// +kubebuilder:resource:path=services,shortName=ty`
+  - support `// +kubebuilder:resource: ...`, `// +resource: ...`. 
+  - Example: `// +kubebuilder:resource:path=services,shortName=ty`
 - parseSubreousrceRequest
-   support `// +subresource-request`
+  - support `// +subresource-request`
 - parseNamespace
-   support `// +genclient:nonNamespaced`. Currently, it is implemented as module("nonNamespaced") of header("genclient").
+  - support `// +genclient:nonNamespaced`. Currently, it is implemented as module("nonNamespaced") of header("genclient").
 - parsePrintColumn
-   support `// +printcolumn`, and `// +kubebuilder:printcolumn`
-   example: `// +kubebuilder:printcolumn:name="toy",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description="descr1",format="date",priority=3`
+  - support `// +printcolumn`, and `// +kubebuilder:printcolumn`
+  - example: `// +kubebuilder:printcolumn:name="toy",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description="descr1",format="date",priority=3`
 
 Modules WIP:
 - parseSubresource (TODO): scale and status
