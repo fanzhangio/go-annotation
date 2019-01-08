@@ -22,7 +22,7 @@ func isGoFile(f os.FileInfo) bool {
 
 // ParseKV parses key-value string formatted as "foo=bar" and returns key and value.
 func ParseKV(s string) (key, value string, err error) {
-	kv := strings.Split(s, "=")
+	kv := strings.SplitN(s, "=", 2)
 	if len(kv) != 2 {
 		err = fmt.Errorf("invalid key value pair")
 		return key, value, err

@@ -71,6 +71,7 @@ func (b *APIs) parseAPIs() {
 					Strategy:       resource.Strategy,
 					NonNamespaced:  resource.NonNamespaced,
 					ShortName:      resource.ShortName,
+					CRD:            resource.CRD,
 				}
 				parseDoc(resource, apiResource)
 				apiVersion.Resources[kind] = apiResource
