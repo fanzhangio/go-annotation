@@ -98,6 +98,9 @@ func (m *Module) parseModule(tokens []string) error {
 	if len(tokens) == 1 {
 		return m.Do(tokens[0])
 	}
+	if len(tokens) == 2 {
+		return m.Do(tokens[1])
+	}
 	// [module]:[submodule]:[element-values]
 	if len(tokens) > 2 {
 		s := tokens[1]
@@ -106,7 +109,7 @@ func (m *Module) parseModule(tokens []string) error {
 		}
 		return m.SubModules[s].parseModule(tokens[1:])
 	}
-	return m.Do(tokens[1])
+	return m.Do("")
 }
 
 // Build returns initialized default annotation

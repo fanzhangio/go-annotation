@@ -98,10 +98,12 @@ func (b *APIs) parseAPIResource() {
 	for _, t := range b.context.Order {
 		// register api annoations
 
-		resource := &codegen.APIResource{}
+		r := &codegen.APIResource{}
 		b.parseSubresourceRequest(t, ann)
-		b.parseResources(resource, ann)
+		b.parseResources(r, ann)
+		b.parseSubresource(ann)
 		b.parseNamespace(ann)
+		b.parseCategories(ann)
 		b.parsePrintColumn(t, ann)
 
 		if IsAPIResource(t) {
@@ -124,7 +126,7 @@ func (b *APIs) parseAPIResource() {
 			if !ok {
 				log.Fatalf("nonNamespaced module not set meta correctly")
 			}
-			r := &codegen.APIResource{Type: t}
+
 			r.NonNamespaced = *nonNamespaced
 			r.Group = GetGroup(t)
 			r.Version = GetVersion(t, r.Group)
@@ -142,6 +144,88 @@ func (b *APIs) parseAPIResource() {
 			r.StatusStrategy = strings.TrimSuffix(r.Strategy, "Strategy")
 			r.StatusStrategy = fmt.Sprintf("%sStatusStrategy", r.StatusStrategy)
 
+			// parse CRD for APIResource
+			r.CRD = v1beta1.CustomResourceDefinition{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "apiextensions.k8s.io/v1beta1",
+					Kind:       "CustomResourceDefinition",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:   fmt.Sprintf("%s.%s.%s", r.Resource, r.Group, r.Domain),
+					Labels: map[string]string{"controller-tools.k8s.io": "1.0"},
+				},
+				Spec: v1beta1.CustomResourceDefinitionSpec{
+					Group:   fmt.Sprintf("%s.%s", r.Group, r.Domain),
+					Version: r.Version,
+					Names: v1beta1.CustomResourceDefinitionNames{
+						Kind:   r.Kind,
+						Plural: r.Resource,
+					},
+					Validation: &v1beta1.CustomResourceValidation{
+						OpenAPIV3Schema: &r.JSONSchemaProps,
+					},
+				},
+			}
+			if r.NonNamespaced {
+				r.CRD.Spec.Scope = "Cluster"
+			} else {
+				r.CRD.Spec.Scope = "Namespaced"
+			}
+			if len(r.ShortName) > 0 {
+				r.CRD.Spec.Names.ShortNames = []string{r.ShortName}
+			}
+			r.CRD.Status.Conditions = []v1beta1.CustomResourceDefinitionCondition{}
+			r.CRD.Status.StoredVersions = []string{}
+
+			// parse Categories
+			categories, ok := ann.GetModule("categories").Meta.(*[]string)
+			if !ok {
+				log.Fatalf("categories module not set meta correctly")
+			}
+			r.CRD.Spec.Names.Categories = *categories
+			r.Categories = *categories
+
+			// parse subresource:status
+			substatus, ok := ann.GetModule("subresource").Meta.(*bool)
+			if !ok {
+				log.Fatalf("subresource:status module not set meta correctly")
+			}
+			if *substatus {
+				if r.CRD.Spec.Subresources == nil {
+					r.CRD.Spec.Subresources = &v1beta1.CustomResourceSubresources{}
+				}
+				r.CRD.Spec.Subresources.Status = &v1beta1.CustomResourceSubresourceStatus{}
+			}
+
+			// parse subresource:scale
+			scale, ok := ann.GetModule("subresource").SubModules["scale"].Meta.(*v1beta1.CustomResourceSubresourceScale)
+			if !ok {
+				log.Fatalf("subresource:scale module not set meta correctly")
+			}
+			if scale != nil {
+				if r.CRD.Spec.Subresources == nil {
+					fmt.Printf("[Debug] ========== parseSubresource() -> Initial r.CRD.Spec.Subresources\n")
+					r.CRD.Spec.Subresources = &v1beta1.CustomResourceSubresources{}
+				}
+				r.CRD.Spec.Subresources.Scale = scale
+			}
+
+			// parse AdditionalPrintColumn
+			result, ok := ann.GetModule("printcolumn").Meta.(*[]v1beta1.CustomResourceColumnDefinition)
+			if !ok {
+				log.Fatalf("printcolumn module not set meta correctly")
+			}
+			r.CRD.Spec.AdditionalPrinterColumns = *result
+
+			// parse JSONSchemaProps and Validation
+			r.JSONSchemaProps, r.Validation = b.typeToJSONSchemaProps(t, sets.NewString(), []string{}, true)
+			r.JSONSchemaProps.Type = ""
+			j, err := json.MarshalIndent(r.JSONSchemaProps, "", "    ")
+			if err != nil {
+				log.Fatalf("Could not Marshall validation %v\n", err)
+			}
+			r.ValidationComments = string(j)
+
 			// Initialize the map entries so they aren't nill
 			if _, f := b.ByGroupKindVersion[r.Group]; !f {
 				b.ByGroupKindVersion[r.Group] = map[string]map[string]*codegen.APIResource{}
@@ -155,60 +239,6 @@ func (b *APIs) parseAPIResource() {
 			if _, f := b.ByGroupVersionKind[r.Group][r.Version]; !f {
 				b.ByGroupVersionKind[r.Group][r.Version] = map[string]*codegen.APIResource{}
 			}
-
-			// parse CRD for APIResource
-			r.CRD = v1beta1.CustomResourceDefinition{
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "apiextensions.k8s.io/v1beta1",
-					Kind:       "CustomResourceDefinition",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:   fmt.Sprintf("%s.%s.%s", r.Resource, r.Group, r.Domain),
-					Labels: map[string]string{"controller-tools.k8s.io": "1.0"},
-				},
-				Spec: v1beta1.CustomResourceDefinitionSpec{
-					Group:   fmt.Sprintf("%s.%s", r.Group, r.Domain),
-					Version: resource.Version,
-					Names: v1beta1.CustomResourceDefinitionNames{
-						Kind:   r.Kind,
-						Plural: r.Resource,
-					},
-					Validation: &v1beta1.CustomResourceValidation{
-						OpenAPIV3Schema: &r.JSONSchemaProps,
-					},
-				},
-			}
-
-			// parse AdditionalPrintColumn
-			result, ok := ann.GetModule("printcolumn").Meta.(*[]v1beta1.CustomResourceColumnDefinition)
-			if !ok {
-				log.Fatalf("printcolumn module not set meta correctly")
-			}
-
-			r.CRD.Spec.AdditionalPrinterColumns = *result
-
-			if r.NonNamespaced {
-				r.CRD.Spec.Scope = "Cluster"
-			} else {
-				r.CRD.Spec.Scope = "Namespaced"
-			}
-
-			if len(resource.ShortName) > 0 {
-				r.CRD.Spec.Names.ShortNames = []string{r.ShortName}
-			}
-
-			// TODO(fanz): parse Categories
-
-			// TODO(fanz): parse subresource:status and scale
-
-			// parse JSONSchemaProps and Validation
-			r.JSONSchemaProps, r.Validation = b.typeToJSONSchemaProps(t, sets.NewString(), []string{}, true)
-			r.JSONSchemaProps.Type = ""
-			j, err := json.MarshalIndent(r.JSONSchemaProps, "", "    ")
-			if err != nil {
-				log.Fatalf("Could not Marshall validation %v\n", err)
-			}
-			r.ValidationComments = string(j)
 			// Add the resource to the map
 			b.ByGroupKindVersion[r.Group][r.Kind][r.Version] = r
 			b.ByGroupVersionKind[r.Group][r.Version][r.Kind] = r
@@ -279,25 +309,73 @@ func (b *APIs) parseSubresourceRequest(t *types.Type, a annotation.Annotation) a
 	return a
 }
 
-// TODO (fanz) : parseSubResource has two submodules: status, and scale
-func (b *APIs) parseSubresource(t *types.Type, a annotation.Annotation) annotation.Annotation {
+// parseSubresource for CRD. Support module "subresource" and submodule "scale"
+// e.g. `+kubebuilder:subresource:status`
+//      `+kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=`
+func (b *APIs) parseSubresource(a annotation.Annotation) annotation.Annotation {
+	var found bool
+	var scale v1beta1.CustomResourceSubresourceScale
 	a.Module(&annotation.Module{
 		Name: "subresource",
-		Do:   nil,
+		Meta: &found,
+		Do: func(string) error {
+			found = true
+			return nil
+		},
 		SubModules: map[string]*annotation.Module{
-			"status": &annotation.Module{
-				Name:       "status",
-				SubModules: map[string]*annotation.Module{},
-				Do:         nil,
-			},
 			"scale": &annotation.Module{
-				Name:       "scale",
-				SubModules: map[string]*annotation.Module{},
-				Do:         nil,
+				Name: "scale",
+				Meta: &scale,
+				Do: func(commentText string) error {
+					jsonPath := map[string]string{}
+					for _, elem := range strings.Split(commentText, ",") {
+						key, value, err := annotation.ParseKV(elem)
+						if err != nil {
+							return fmt.Errorf(jsonPathError+"Got string: [%s]", commentText)
+						}
+						if key == specReplicasPath || key == statusReplicasPath || key == labelSelectorPath {
+							jsonPath[key] = value
+						} else {
+							return fmt.Errorf(jsonPathError+"Got string: [%s]", commentText)
+						}
+					}
+					var ok bool
+					_, ok = jsonPath[specReplicasPath]
+					if !ok {
+						return fmt.Errorf(jsonPathError)
+					}
+					_, ok = jsonPath[statusReplicasPath]
+					if !ok {
+						return fmt.Errorf(jsonPathError)
+					}
+					scale.SpecReplicasPath = jsonPath[specReplicasPath]
+					scale.StatusReplicasPath = jsonPath[statusReplicasPath]
+
+					labelSelctor, ok := jsonPath[labelSelectorPath]
+					if ok && labelSelctor != "" {
+						scale.LabelSelectorPath = &labelSelctor
+					}
+					return nil
+				},
 			},
 		},
 	})
+	return a
+}
 
+// parseCategories validates annotation e.g. "+kubebuilder:categories:foo,bar,hoo""
+func (b *APIs) parseCategories(a annotation.Annotation) annotation.Annotation {
+	var categories []string
+	a.Module(&annotation.Module{
+		Name: "categories",
+		Meta: &categories,
+		Do: func(commentText string) error {
+			for _, elem := range strings.Split(commentText, ",") {
+				categories = append(categories, elem)
+			}
+			return nil
+		},
+	})
 	return a
 }
 
