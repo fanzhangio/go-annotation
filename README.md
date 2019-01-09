@@ -7,18 +7,28 @@ The codes in this repo demos how `Annotation-based Pattern` can be used for [Kub
 ### Annotaion format
 Annotation has a series of tokens seperate by colon. **Token** is a string value in annotaion. It has meaning by its position in token slice, in the form of **+[header]:[module]:[submodule]:[key-value elements]**. Annotaion starts with `+` (e.g. `// +k8s`) to differ regular go comments.
 
-- **header** is like `kubebuilder`, `k8s`, `genclient`, etc. Header is recommended for all annotaitons, but considering forward-compatibility, header could be emitted, in this case module must be the first token, like `+resource:path=services,shortName=mem`
+- **header** is like `kubebuilder`, `k8s`, `genclient`, etc. Header is recommended for all annotaitons, but considering forward-compatibility, header could be omitted, in this case module must be the first token, like `+resource:path=services,shortName=mem`
 
 - **module** is like rbac, webhook, doc, etc. 
 - **submodule** is optional, for example: subresource or something need to extend prior module. submodule could be append if necessary, for example: **module:submodule1:submodule2:submodule3** for fine-grained annotation module control
 
-- **key-value elements** is bunch of meta data key-values pairs, separate by ,. Inner value delimiter within each pair is ;. Inner delimiter of label within value of key is marked by |, like selector=app|webhook-server
+- **key-value elements** is bunch of meta data key-values pairs, separate by `,`. Inner value delimiter within each pair is `;`. Inner delimiter of label within value of key is marked by `|`, like `selector=app|webhook-server`. For some cases, key-value element is omitted.
 
 - The same module or submodule annotation should be lay in the same comment line.
 
 ### Allowed annotation symbols
 - **Colon**
-  - Colon `:` is the highest level delimiter only for separate tokens. Tokens on the different sides of colon should refer to different 
+  - Colon `:` is the 1st level delimiter (to annotaion) only for separate tokens. Tokens on the different sides of colon should refer to different
+- **Comma**
+  - Comma `,` is the 2nd level delimiter (to annotaion) for slpitting key-value pairs in **key-value elements** which is normally the last token in annotaion. e.g. `+kubebuilder:printcolumn:name=<name>,type=<type>,description=<desc>,JSONPath:<.spec.Name>,priority=<int32>,format=<format>` It works within token which is the 2nd levle of annotaion, so it is called "2nd level delimiter"
+- **Equals sign**
+  - Equals sign `=` is the 3rd level delimiter (to annotaion) for identify key and value. Since the `key=value` parts are splitted from single token (2nd level), its inner delimiter `=` works for next level (3rd level)
+- **Pipe sign or Vertical bar**
+  - Pip sign `|` is the 4th level delimiter, which works inside `key=value` part (3rd level) indicating key and value.
+
+Examples of annotaion signs:
+`// +kubebuilder:webhook:serveroption:port=7890,cert-dir=/tmp/test-cert,service=test-system|webhook-service,selector=app|webhook-server,secret=test-system|webhook-secret,mutating-webhook-config-name=test-mutating-webhook-cfg,validating-webhook-config-name=test-validating-webhook-cfg`
+
 
 ## Packages Illustration
 This repo takes `controller-tool` as example to illustrate how to develop and use `annotaion-based pattern`  
