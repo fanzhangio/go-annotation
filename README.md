@@ -1,24 +1,29 @@
 # Go Annotation
-Go Annotation is an implementation for [Generic Annotation Spec](https://github.com/kubernetes-sigs/kubebuilder/issues/554).
-It introduces an `Annotation-based Pattern`.
+Go Annotation introduces a `Modulized Annotation Pattern`. This pattern is to modulize annotation and register fine-grained feature modules (or submodules) with corresponding handler functions for dynamic meta data injection and feature hooks in runtime of go code.
 
 The codes in this repo demos how `Annotation-based Pattern` can be used for [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) project. By this approach, an easy-to sacle, develop and maintain annotaion mechanism is provided to unify annotation schemas and usages in kubebuilder project. It is easily to extend features in kubebuilder.
 
-The annotation spec is like 
-## [header]:[module]:[submodule]:[key-value elements]
+## Annotation Syntax
+### Annotaion format
+Annotation has a series of tokens seperate by colon. **Token** is a string value in annotaion. It has meaning by its position in token slice, in the form of **+[header]:[module]:[submodule]:[key-value elements]**. Annotaion starts with `+` (e.g. `// +k8s`) to differ regular go comments.
 
-[header] is like `// +kubebuilder`, `// +k8s`, `// +genclient`, etc. For forward-compatibility, [header] could be emitted, in this case, [module] must be the first token
+- **header** is like `kubebuilder`, `k8s`, `genclient`, etc. Header is recommended for all annotaitons, but considering forward-compatibility, header could be emitted, in this case module must be the first token, like `+resource:path=services,shortName=mem`
 
-[module] is like rbac, webhook, doc, etc. [submodule] is optional, for example: subresource or something need to extend prior module. [submodule] could be append if necessary, for example: [module]:[submodule1]:[submodule2]:[submodule3] for fine-grained annotation control
+- **module** is like rbac, webhook, doc, etc. 
+- **submodule** is optional, for example: subresource or something need to extend prior module. submodule could be append if necessary, for example: **module:submodule1:submodule2:submodule3** for fine-grained annotation module control
 
-[key-value elements] is bunch of meta data key-values pairs, separate by ,. Inner value delimiter within each pair is ;. Inner delimiter of label within value of key is marked by |, like selector=app|webhook-server
+- **key-value elements** is bunch of meta data key-values pairs, separate by ,. Inner value delimiter within each pair is ;. Inner delimiter of label within value of key is marked by |, like selector=app|webhook-server
 
-The same module or submodule annotation should be lay in the same comment line.
+- The same module or submodule annotation should be lay in the same comment line.
+
+### Allowed annotation symbols
+- **Colon**
+  - Colon `:` is the highest level delimiter only for separate tokens. Tokens on the different sides of colon should refer to different 
 
 ## Packages Illustration
 This repo takes `controller-tool` as example to illustrate how to develop and use `annotaion-based pattern`  
 For demo, two headers (`kubebuilder` and `genclient`) and a couple of modules are registered in default annotation.
-`webhook` and `rbac` reside in `./pkg/webhook` and `./pkg/rbac` separately. The core parser and codegen are `WIP`
+`webhook` and `rbac` reside in `./pkg/webhook` and `./pkg/rbac` separately. `CRD` and `code-gen` parser and moduels are in `./pkg/codegen/parse`
 
 ### Webhook
 [header] is `kubebuilder`,
