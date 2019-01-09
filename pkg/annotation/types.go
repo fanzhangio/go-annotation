@@ -10,10 +10,21 @@ import (
 // Annotation defines a generic spec of annotations
 // The schema is [header]:[module]:[submodule]:[key-value elements], submodule could be optional and multiple
 type Annotation interface {
+
+	// Header register header string without "+" of annotation, e.g. "kubebuilder", "k8s"
 	Header(string)
+
+	// Module register functional annotation module, it could be second token after header or first token in annotation
+	// e.g. rbac module refers annotation like "+kubebuilder:rbac", or "+rbac"
 	Module(*Module)
+
+	// HasModule returns true if given module name is registered
 	HasModule(string) bool
+
+	// GetModule returns module by given name
 	GetModule(string) *Module
+
+	// Parse takes single comment group and parse registered annotation
 	Parse(string) error
 }
 
@@ -45,7 +56,7 @@ func (a *defaultAnnotation) GetModule(name string) *Module {
 	return nil
 }
 
-// Parse takes single line comment and validates each token.
+// Parse parses comemnt group into single line comment and validates each token.
 func (a *defaultAnnotation) Parse(comments string) error {
 	for _, comment := range strings.Split(comments, "\n") {
 		comment = strings.TrimSpace(comment)
@@ -76,7 +87,8 @@ func (a *defaultAnnotation) parseTokens(tokens []string) error {
 	return fmt.Errorf("annotation %+v format error", tokens)
 }
 
-// Module
+// Module defines functional feature for annotation. Header may contain multiple modules,
+// single module may contain submodules. Do() function defines what this module can do
 type Module struct {
 	Name       string
 	Meta       interface{}
