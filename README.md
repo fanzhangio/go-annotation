@@ -64,8 +64,8 @@ Implemented Modules:
   - example: `// +kubebuilder:printcolumn:name="toy",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description="descr1",format="date",priority=3`
 - parseCRD
   - Implement generating CRD in just one parse by `parseAPIResource`. Optimize CRD generation and parsing api resources.
-
-Modules WIP:
-- parseSubresource (TODO): scale and status
-- parseCategories  (TODO)
-
+- parseSubresource
+  - support CRD Subreosurce **sacle** and **status**
+  - example: `// +kubebuilder:subresource:status` and `// +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=`
+- parseCategories
+  - example: `// +kubebuilder:categories:foo,bar,hoo`
