@@ -82,7 +82,7 @@ CRD
        - example: `// +kubebuilder:categories:foo,bar,hoo`
 
 Implemented Modules:
-- **parseAPIAnnotation*
+- **parseAPIAnnotation**
 - **parseCRD**. Implement generating CRD in just one parse by `parseAPIResource`. Optimize CRD generation and parsing api resources.
 - **parseAPIResource**, support `// +kubebuilder:resource: ...`, `// +resource: ...`. 
 - **parseSubreousrceRequest**, support `// +subresource-request`
