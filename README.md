@@ -69,17 +69,21 @@ CRD
       -  **header** is `kubebuilder`, **module** is `resource`
       - Example: `// +kubebuilder:resource:path=services,shortName=ty`
    - SubresourceRequest
+     -  **header** is `kubebuilder`, **module** is `subresource-request`
       - example `// +subresource-request`, or `// +kubebuilder:subresource-request`
    - Namespace
-      - support `// +genclient:nonNamespaced`. Currently, it is implemented as module("nonNamespaced") of header("genclient").
+      - **header** is `genclient`, **module** is `nonNamespaced`
+      - example `// +genclient:nonNamespaced`.
    - AdditionalPrintColumn
-      - support `// +printcolumn`, and `// +kubebuilder:printcolumn`
+      - **header** is `kubebuilder`, **module** is `printcolumn`
       - example: `// +kubebuilder:printcolumn:name="toy",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description="descr1",format="date",priority=3`
     - SubResource
-       - support CRD Subreosurce **sacle** and **status**
+       - **header** is `kubebuilder`, **module** is `sacle` or  `status`
        - example: `// +kubebuilder:subresource:status` and `// +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=`
     - Categories
+       - **header** is `kubebuilder`, **module** is `categories`
        - example: `// +kubebuilder:categories:foo,bar,hoo`
+
 
 Implemented Modules:
 - **parseAPIAnnotation**
