@@ -69,9 +69,8 @@ type Module struct {
 		&Module{
 			// name should match the string in module token, it is also the key to valid and retrieve Module
 			Name: "module",
-		    // Meta holds the reference returned by this Module Do function
+		        // Meta holds the reference returned by this Module Do function
 			Meta: context,
-
 			SubModules: map[string]*Module{
 				"submodule": &Module{
 					Name: "submodule",
@@ -82,7 +81,6 @@ type Module struct {
 					},
 				},
 			},
-
 			Do: func(string)error{
 				// Implement what the module do. If sub-module perform the actual behavior, it could be nil.
 			}
