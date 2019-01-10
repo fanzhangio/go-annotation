@@ -1,11 +1,11 @@
 # Go Annotation
 Go Annotation introduces a `Modularized Annotation Pattern`. This pattern is to modularize annotation and register fine-grained feature modules (or submodules) with corresponding handler functions for dynamic meta data injection and feature hooks in runtime of go code.
 
-The codes in this repo demos how `Annotation-based Pattern` can be used for [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) project. By this approach, an easy-to sacle, develop and maintain annotaion mechanism is provided to unify annotation schemas and usages in kubebuilder project. It is easily to extend features in kubebuilder.
+The codes in this repo demos how `Annotation-based Pattern` can be used for [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) project. By this approach, an easy-to sacle, develop and maintain annotation mechanism is provided to unify annotation schemas and usages in kubebuilder project. It is easily to extend features in kubebuilder.
 
 ## Annotation Syntax
-### Annotaion format
-Annotation has a series of tokens seperate by colon. **Token** is a string value in annotaion. It has meaning by its position in token slice, in the form of **+[header]:[module]:[submodule]:[key-value elements]**. Annotaion starts with `+` (e.g. `// +k8s`) to differ regular go comments.
+### Annotation format
+Annotation has a series of tokens seperate by colon. **Token** is a string value in annotation. It has meaning by its position in token slice, in the form of **+[header]:[module]:[submodule]:[key-value elements]**. Annotation starts with `+` (e.g. `// +k8s`) to differ regular go comments.
 
 - **header** is like `kubebuilder`, `k8s`, `genclient`, etc. Header is recommended for all annotaitons, but considering forward-compatibility, header could be omitted, in this case module must be the first token, like `+resource:path=services,shortName=mem`
 
@@ -18,20 +18,20 @@ Annotation has a series of tokens seperate by colon. **Token** is a string value
 
 ### Allowed annotation symbols
 - **Colon**
-  - Colon `:` is the 1st level delimiter (to annotaion) only for separate tokens. Tokens on the different sides of colon should refer to different
+  - Colon `:` is the 1st level delimiter (to annotation) only for separate tokens. Tokens on the different sides of colon should refer to different
 - **Comma**
-  - Comma `,` is the 2nd level delimiter (to annotaion) for slpitting key-value pairs in **key-value elements** which is normally the last token in annotaion. e.g. `+kubebuilder:printcolumn:name=<name>,type=<type>,description=<desc>,JSONPath:<.spec.Name>,priority=<int32>,format=<format>` It works within token which is the 2nd levle of annotaion, so it is called "2nd level delimiter"
+  - Comma `,` is the 2nd level delimiter (to annotation) for slpitting key-value pairs in **key-value elements** which is normally the last token in annotation. e.g. `+kubebuilder:printcolumn:name=<name>,type=<type>,description=<desc>,JSONPath:<.spec.Name>,priority=<int32>,format=<format>` It works within token which is the 2nd levle of annotation, so it is called "2nd level delimiter"
 - **Equals sign**
-  - Equals sign `=` is the 3rd level delimiter (to annotaion) for identify key and value. Since the `key=value` parts are splitted from single token (2nd level), its inner delimiter `=` works for next level (3rd level)
+  - Equals sign `=` is the 3rd level delimiter (to annotation) for identify key and value. Since the `key=value` parts are splitted from single token (2nd level), its inner delimiter `=` works for next level (3rd level)
 - **Pipe sign or Vertical bar**
   - Pip sign `|` is the 4th level delimiter, which works inside `key=value` part (3rd level) indicating key and value.
 
-Examples of annotaion signs:
+Examples of annotation signs:
 `// +kubebuilder:webhook:serveroption:port=7890,cert-dir=/tmp/test-cert,service=test-system|webhook-service,selector=app|webhook-server,secret=test-system|webhook-secret,mutating-webhook-config-name=test-mutating-webhook-cfg,validating-webhook-config-name=test-validating-webhook-cfg`
 
 
 ## Packages Illustration
-This repo takes `controller-tool` as example to illustrate how to develop and use `annotaion-based pattern`  
+This repo takes `controller-tool` as example to illustrate how to develop and use `annotation-based pattern`  
 For demo, two headers (`kubebuilder` and `genclient`) and a couple of modules are registered in default annotation.
 `webhook` and `rbac` reside in `./pkg/webhook` and `./pkg/rbac` separately. `CRD` and `code-gen` parser and moduels are in `./pkg/codegen/parse`
 
@@ -54,7 +54,7 @@ For demo, two headers (`kubebuilder` and `genclient`) and a couple of modules ar
 ### RBAC
 [header] is `kubebuilder`
 [module] is `rbac`
-No submodule at this moment, support annotaions like : `// +rbac`, `// +kubebuilder:rbac`
+No submodule at this moment, support annotations like : `// +rbac`, `// +kubebuilder:rbac`
 
 - Annotation examples:
 ```golang
