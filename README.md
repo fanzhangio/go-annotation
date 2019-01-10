@@ -3,6 +3,9 @@ Go Annotation introduces a [Modularized Annotation Pattern](./Modularized-Annota
 
 The codes in this repo demos how `Annotation-based Pattern` can be used for [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) project. By this approach, an easy-to sacle, develop and maintain annotation mechanism is provided to unify annotation schemas and usages in kubebuilder project. It is easily to extend features in kubebuilder.
 
+
+Basically, from a developer's perspective, the ideal user's expereince of tools should be like "All you have to do is focusing on writting your code, and just put instructions with parameters as annotations as what you want. Run tool cli, everything will be handled by the tool based on your annotations."
+
 ## Annotation Syntax
 ### Annotation format
 Annotation has a series of tokens seperate by colon. **Token** is a string value in annotation. It has meaning by its position in token slice, in the form of **+[header]:[module]:[submodule]:[key-value elements]**. Annotation starts with `+` (e.g. `// +k8s`) to differ regular go comments.
