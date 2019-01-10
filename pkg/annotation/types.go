@@ -88,12 +88,17 @@ func (a *defaultAnnotation) parseTokens(tokens []string) error {
 }
 
 // Module defines functional feature for annotation. Header may contain multiple modules,
-// single module may contain submodules. Do() function defines what this module can do
+// single module may contain submodules. Coresponding Module invokes Do function when valid module name is found in parsing annotations
 type Module struct {
-	Name       string
-	Meta       interface{}
+
+	// Name of the module. It should match the token string in the annotation
+	Name string
+	// Meta holds meta data this module will return or impact. (TODO: fanz) Consider take it into context
+	Meta interface{}
+	// SubModules represents a recursive architecture of annotation syntax, e.g. [header]:[module]:[submodule1]:[submodule2]:...
 	SubModules map[string]*Module
-	Do         func(string) error
+	// Do is handler function which defines what this module can do. It takes annotation token passed by Module, and might involve context from runtime
+	Do func(string) error
 }
 
 // HasSubModule verify if given token string is a valid subresource
