@@ -64,23 +64,29 @@ No submodule at this moment, support annotations like : `// +rbac`, `// +kubebui
 ```
 
 ### Core code-gen parser and parse CRD
+CRD
+   - API Resource
+      -  **header** is `kubebuilder`, **module** is `resource`
+      - Example: `// +kubebuilder:resource:path=services,shortName=ty`
+   - SubresourceRequest
+      - example `// +subresource-request`, or `// +kubebuilder:subresource-request`
+   - Namespace
+      - support `// +genclient:nonNamespaced`. Currently, it is implemented as module("nonNamespaced") of header("genclient").
+   - AdditionalPrintColumn
+      - support `// +printcolumn`, and `// +kubebuilder:printcolumn`
+      - example: `// +kubebuilder:printcolumn:name="toy",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description="descr1",format="date",priority=3`
+    - SubResource
+       - support CRD Subreosurce **sacle** and **status**
+       - example: `// +kubebuilder:subresource:status` and `// +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=`
+    - Categories
+       - example: `// +kubebuilder:categories:foo,bar,hoo`
 
 Implemented Modules:
-- parseAPIAnnotation
-- parseAPIResource
-  - support `// +kubebuilder:resource: ...`, `// +resource: ...`. 
-  - Example: `// +kubebuilder:resource:path=services,shortName=ty`
-- parseSubreousrceRequest
-  - support `// +subresource-request`
-- parseNamespace
-  - support `// +genclient:nonNamespaced`. Currently, it is implemented as module("nonNamespaced") of header("genclient").
-- parsePrintColumn
-  - support `// +printcolumn`, and `// +kubebuilder:printcolumn`
-  - example: `// +kubebuilder:printcolumn:name="toy",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description="descr1",format="date",priority=3`
-- parseCRD
-  - Implement generating CRD in just one parse by `parseAPIResource`. Optimize CRD generation and parsing api resources.
-- parseSubresource
-  - support CRD Subreosurce **sacle** and **status**
-  - example: `// +kubebuilder:subresource:status` and `// +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=`
-- parseCategories
-  - example: `// +kubebuilder:categories:foo,bar,hoo`
+- **parseAPIAnnotation*
+- **parseCRD**. Implement generating CRD in just one parse by `parseAPIResource`. Optimize CRD generation and parsing api resources.
+- **parseAPIResource**, support `// +kubebuilder:resource: ...`, `// +resource: ...`. 
+- **parseSubreousrceRequest**, support `// +subresource-request`
+- **parseNamespace**, support `// +genclient:nonNamespaced`. Currently, it is implemented as module("nonNamespaced") of header("genclient").
+- **parsePrintColumn**, support `// +printcolumn`, and `// +kubebuilder:printcolumn`
+- **parseSubresource**, support CRD Subreosurce **sacle** and **status**
+- **parseCategories**, support like `// +kubebuilder:categories:foo,bar,hoo`
