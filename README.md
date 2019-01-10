@@ -1,5 +1,5 @@
 # Go Annotation
-Go Annotation introduces a [Modularized Annotation Pattern](./Modularized-Annotation-Modularized-Annotation-Pattern.md). This pattern is to modularize annotation and register fine-grained feature modules (or submodules) with corresponding handler functions for dynamic meta data injection and feature hooks in runtime of go code.
+Go Annotation introduces a [Modularized Annotation Pattern](./Modularized-Annotation-Pattern.md). This pattern is to modularize annotation and register fine-grained feature modules (or submodules) with corresponding handler functions for dynamic meta data injection and feature hooks in runtime of go code.
 
 The codes in this repo demos how `Annotation-based Pattern` can be used for [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) project. By this approach, an easy-to sacle, develop and maintain annotation mechanism is provided to unify annotation schemas and usages in kubebuilder project. It is easily to extend features in kubebuilder.
 
