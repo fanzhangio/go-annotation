@@ -1,6 +1,6 @@
 # Modularized Annotation Pattern
 
-This document is about `Modularized Annotation Pattern`. This pattern is to modularize annotation and register fine-grained feature modules (or sub-modules) with corresponding handler functions for dynamic meta data injection and feature hooks in runtime of go code. 
+This document is about `Modularized Annotation Pattern`. This pattern is to modularize annotation and register fine-grained feature modules (or sub-modules) with corresponding handler functions for dynamic meta data injection and feature hooks in compile-time of go code. 
 
 From a developer's perspective, the ideal user's expereince of tools should be like `All you have to do is focusing on writting your code, and just put instructions with parameters as annotations as what you want. Run tool cli, everything will be handled based on your annotations by the tool.` 
 
