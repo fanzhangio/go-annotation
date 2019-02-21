@@ -109,3 +109,6 @@ Implemented Modules:
 - **parsePrintColumn**, support `// +printcolumn`, and `// +kubebuilder:printcolumn`
 - **parseSubresource**, support CRD Subreosurce **sacle** and **status**
 - **parseCategories**, support like `// +kubebuilder:categories:foo,bar,hoo`
+
+## Go Annotation Syntax:
+**MIT**
